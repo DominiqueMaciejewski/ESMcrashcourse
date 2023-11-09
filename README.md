@@ -32,6 +32,9 @@ Click on the `Files` pane on `1_script` -\> `1_interactive_analyses_ESM_crashcou
 
 ![](Github3.PNG){width="403"}
 
+Alright, we can get started!
+Happy coding ❤️💻
+
 For any questions, please feel free to contact me via [d.f.maciejewski\@tilburguniversity.edu](mailto:d.f.maciejewski@tilburguniversity.edu){.email}
 
 *Copyright (c) Dominique Maciejewski, License: CC BY 4.0 \| Attribution 4.0 International*
