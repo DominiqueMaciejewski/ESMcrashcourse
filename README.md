@@ -12,6 +12,16 @@ Then, there is an additional file with much more explanation and extra analyses.
 
 In the folder `2_figures`, you can find some plots that we will make together during the workshop.
 
+For now, download the code. Unpack the folder and double click on `VNOPworkshop2023.Rproj`
+
+![](Github.PNG){width="396"}
+
+![](Github2.PNG)
+
+Then, your `R` will open. Click on the `Files` pane on `1_script` -\> `1_interactive_analyses_ESM_crashcourse.R`
+
+![](Github3.PNG){width="403"}
+
 For any questions, please feel free to contact me via [d.f.maciejewski\@tilburguniversity.edu](mailto:d.f.maciejewski@tilburguniversity.edu){.email}
 
 *Copyright (c) Dominique Maciejewski, License: CC BY 4.0 \| Attribution 4.0 International*
