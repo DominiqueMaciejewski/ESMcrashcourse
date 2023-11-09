@@ -1,0 +1,640 @@
+---
+title: "ESM crashcourse - Workshop at VNOP-CAS research days 2023 (Utrecht, 16 November 2023)"
+author: "Dominique F. Maciejewski"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    toc_depth: 6
+  word_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+In this very short crash-course, we will focus on two research questions
+
+1)  What is the momentary relation between negative event intensity and rumination?
+    In other words: on days that participants report that they have experienced more intense negative emotional events, do they also ruminate to a greater extent?
+
+2)  Do inter-individual differences in depressive symptoms moderate this momentary relation (i.e., influence the strength of the relation between negative event intensity and rumination?).
+    For instance, it possible that people that experience more depressive symptoms on average also ruminate more in response to negative events.
+
+The data that we will be using comes from the Track your Mood Study (Maciejewski, Olthof, & Bunge, 2021), an ESM study that was conducted across 60 days in students.
+For more information about the Track your Mood Project, please see the Project page <https://osf.io/fx3ay/>.
+We used the app *m-path* for data collection (see <https://m-path.io/landing/>) We will only use a subset of that data, since not all participants gave consent to having their data shared.
+We measured a lot of variables in the study, but will only focus on a few variables here, namely daily negative events, daily rumination and baseline depressive symptoms.
+
+The participants reported on their depressive symptoms at baseline using the DASS-21 questionnaires.
+Then, they reported on their daily most intense negative events and how much they ruminated every evening across 60 days.
+
+If you want to look at an example of a filled in pre-registration template that used the data from Track your Mood, please see <https://osf.io/fg58t>.
+
+**Note**: This course is NOT comprehensive!
+For a great resource, part of which were used here, see
+
+1)  Myin-Germeys, I., & Kuppens, P. (Eds.). (2022) The open handbook of experience sampling methodology: A step-by-step guide to designing, conducting, and analyzing ESM studies (2nd ed.). Leuven: Center for Research on Experience Sampling and Ambulatory Methods Leuven. Available for free via: <https://www.kuleuven.be/samenwerking/real/real-book>
+
+2)  Tutorials by Penn State, available via <https://quantdev.ssri.psu.edu/resources/intensive-longitudinal-data-analysis-experience-sampling-and-ema-data>
+
+3)  Tutorial on data cleaning, available via <https://preprocess.esmtools.com/>
+
+For any questions, please feel free to contact me via [d.f.maciejewski\@tilburguniversity.edu](mailto:d.f.maciejewski@tilburguniversity.edu){.email}
+
+*Copyright (c) Dominique Maciejewski, License: CC BY 4.0 \| Attribution 4.0 International*
+
+# Step 1: Setup and Packages
+
+This includes loading packages, turning off scientific notation, and asking for the session Info.
+The latter gives information about which versions of R and packages were used, which is very important for reproducibility.
+
+The `here` package is super handy, because it allows you to use relative paths instead of (often extremely long) absolute paths.
+So, even if you move the folder where the data is stored, you can still run all your code (also important for reproducibility and working with other researchers).
+
+```{r library}
+# Options ----------------------------------------------
+
+options(scipen = 999)  # To prevent scientific notation
+sessionInfo() # For reproducibility (gives version numbers of packages)
+
+# Library ----------------------------------------------
+
+## install packages if needed
+# install.packages("here")
+# install.packages("remotes")
+# remotes::install_github("wviechtb/esmpack")
+# install.packages("ggplot2")
+# install.packages("dplyr")
+# install.packages("psych")
+# install.packages("tidyr")
+# install.packages("Hmisc")
+# install.packages("misty")
+# install.packages("nlme")
+# install.packages("lmerTest")
+
+## load packages
+library(here) # for relative paths (try avoiding absolute paths!)
+library(esmpack) # helps with data management of ESM data
+library(ggplot2) # for visualization
+library(dplyr) # for data wrangling
+library(psych) # for descriptives
+library(tidyr) # for datawrangling
+library(Hmisc) # for descriptives
+library(misty) # for multilevel correlation
+library(nlme) # for multilevel models
+library(lmerTest) # so that p-values are given for multilevel models
+
+
+```
+
+# Step 2: Load in Data
+
+Data cleaning is an art in itself and often takes the most time (and is highly under-appreciated).
+Here, I can only focus on a few small important pieces of data cleaning, but I urge you to check out this website about ESM data cleaning: <https://preprocess.esmtools.com/>.
+
+First, we load in the data, which can be found in the folder `0_data`, which we easily specify with the `here` package.
+
+```{r read}
+data <- read.csv(here("0_data", "TYM_VNOP2023_raw.csv"), header=TRUE, stringsAsFactors=FALSE)
+```
+
+## Description Data
+
+| Variable name            |                      Construct                      |
+|-----------------------|:-----------------------------------------------:|
+| participant.ID          |                Identification number                |
+| day                     |                   Assessment day                    |
+| filledin                |         Whether questionnaire was filled in         |
+| scheduledBeepId         |                ID of scheduled beep                 |
+| sentBeepId              |                   ID of sent beep                   |
+| duration_sec_start_stop | Time it took to fill in questionnaire (in seconds)  |
+| DepB                    | Depressive symptoms (Baseline; sumscore of 6 items) |
+| n.ev.int                |           Negative event intensity (ESM)            |
+| n.er.rum                |                  Rumination (ESM)                   |
+| n.er.rel                |                  Relaxation (ESM)                   |
+
+These are the specific wordings for the ESM items:
+
+-   Negative event intensity: "This event was"; slider; 0 = neutral, 100 very unpleasant)\
+-   Rumination: "I continuously thought about what made me feel bad"; slider; 0 = not at all, 100 = a lot\
+-   Relaxation: "I took a deep breath"; slider; 0 = not at all, 100 = a lot
+
+Now, we inspect the first 6 rows of the dataset.
+
+```{r insp}
+head(data) 
+```
+
+# Step 3: Data checking/cleaning
+
+Then, we need to perform some checks on the data.
+
+First, there should not be any missing on the design data, which includes the day variable, beep number and participant number.
+
+```{r missdesign}
+# Check non-missing in design data
+check.nomiss(participant.ID, participant.ID, data=data)
+check.nomiss(participant.ID, day, data=data)
+check.nomiss(participant.ID, scheduledBeepId, data=data)
+check.nomiss(participant.ID, sentBeepId, data=data)
+```
+
+Looks good!
+
+Second, we should check whether any time-invariant variables (i.e., those that were only assessed once) are really time-invariant (i.e., do not vary within subjects).
+This includes for instance sex, age, and in our case depressive symptoms, which were assessed before the ESM period.
+
+```{r timeinv}
+# Check that Depression is time-invariant within subjects (i.e., does not vary within subjects)
+check.timeinvar(Dep, participant.ID, data=data, na.rm=FALSE)
+```
+
+Looks good!
+
+Third, there should not be any duplicated beeps.
+In the mpath app, you get a unique ID number for each of the beeps and can easily check for any duplicates here with the `esm pack`.
+
+```{r dup}
+# Check for duplicated beeps, examining the beep ID number
+check.nodup(scheduledBeepId, participant.ID, data, out=1, na.rm=TRUE)
+check.nodup(sentBeepId, participant.ID, data, out=1, na.rm=TRUE)
+```
+
+Looks good!
+
+Fourth, you should check for the range of the variables.
+For instance, if you use a scale from 0 to 100, then there should not be any values outside of that range.
+
+In our case, the ESM items were measured on a scale from 0 to 100.
+
+The depression score is a sumscore of 6 items with the answer options 0 to 3, so the range should be between 0 and 18.
+
+```{r range}
+# Check range for items
+psych::describe(data[c("n.ev.int","n.er.rum","Dep")])
+```
+
+Looks good!
+
+## Careless responders
+
+For now, we will focus on two instances that could indicate careless responding.
+Let's first see how many participants and valid observations we have at the moment:
+
+```{r nbefore}
+## N participants & observations before exclusion ----
+n_par_0 <- nsub(participant.ID, data) 
+n_obs_0 <- sum(data$filledin == 1)
+
+n_par_0
+n_obs_0
+```
+
+First, we will exclude participants with zero variance (i.e., participants that always had the same answer across the whole study period).
+
+```{r exc1}
+### Step 1: Exclude participants with zero variance  ------
+data <- check.timeinvar(n.ev.int, participant.ID, data, out = 3)
+data <- check.timeinvar(n.er.rum, participant.ID, data, out = 3)
+```
+
+Second, we will exclude participants who have filled in the whole questionnaires (with \~30 questions) in less than 60 seconds.
+Note: These exclusion criteria are highly variable and should be decided BEFORE you start analyzing (preferably in a pre-registration).
+
+In the code, we are essentially saying to include all those where the completion time is equal to or larger than 60 seconds and those that have a missing on completion time (we do not delete rows with missing beeps).
+
+```{r exc2}
+### Step 2: Total completion < 1 minute ------
+data <- data %>%
+  dplyr::filter(duration_sec_start_stop >=60 | is.na(duration_sec_start_stop)) 
+```
+
+Now, we will check how many participants and observations we still have left.
+
+```{r nafter}
+## N participants & observations after exclusion ----
+n_par_1 <- nsub(participant.ID, data) 
+n_obs_1 <- sum(data$filledin == 1)
+
+```
+
+And now, we calculate the difference to see how many were excluded.
+
+```{r ndiff}
+## N participants & observations excluded ----
+n_par_0-n_par_1  
+n_obs_0-n_obs_1  
+```
+
+In total, 1 participant and 33 observations were excluded.
+
+## Calculate centered variables
+
+For the multilevel analyses later, we need to center our study variables.
+
+First, we person-center the **time-varying predictors**:\
+Usually, if you are interested in within-person relationships, then the time-varying variables are person-centered, meaning that the individual mean per participant is subtracted from each score.
+This is important, because it removes all between-person variance in the centered data, which is useful for studying within-person associations (Kleiman, 2017; Wang & Maxwell, 2015).
+The resulting score indicates how much each participant differs from their own mean.
+The time-varying predictor in our model is *negative event intensity*.
+
+Luckily, there is a pretty neat function form the `esm-pack` for person-centering!
+
+```{r pmcent}
+### Person-mean centering -----------------------------
+data$n.ev.int.c<-calc.mcent(n.ev.int, participant.ID, data=data)
+```
+
+Second, we grand-mean center the **time-invariant predictors**:\
+Usually, if you use time-invariant predictors in your multilevel model, then you want to grand-mean center those variables, meaning that the group mean is subtracted from each score (i.e., the group mean refers to the average across **all** participants).
+The resulting score indicates how much each participant differs from the mean of the entire sample.
+The time-invariant predictor in our model are depressive symptoms.
+
+```{r gmcent}
+### Grand-mean centering -----------------------------
+# aggregate depression data to subject level
+groupmean<-aggreg(data=data, id=participant.ID, vars="Dep", grep=FALSE, na.rm=TRUE)
+
+# calculate mean of depression score in this new dataset
+mean_Dep <- mean(groupmean[,1], na.rm = TRUE)
+
+# Subtract each score from the grandmean we just calculated
+data <- data %>% 
+  dplyr::mutate(Dep.c = Dep-mean_Dep)
+```
+
+## Save cleaned datafile
+
+For a good data management practice, you want to have a raw data file and a cleaned data file.
+So, after this data cleaning, let's save the cleaned data file.
+
+```{r save}
+write.csv(data, here("0_data", "TYM_VNOP2023_cleaned.csv"), row.names=FALSE)
+```
+
+Wonderful! 
+
+## Descriptive Statistics
+We also want to report on some descriptive statistics.
+For the time-varying variables, we will calculate the person-aggregate across all time-points and report descriptive statistics on those
+
+First, we make a new dataset, aggregated across participants.
+Note that the Depression sub scale is time-invariant already (because we only assessed it at baseline).
+
+```{r aggr}
+data_M <- data %>%
+  dplyr::group_by(participant.ID) %>%
+  dplyr::summarize(
+    across(c("n.ev.int", "n.er.rum", "Dep"), ~mean(., na.rm = TRUE), .names = "imean_{.col}"))
+```
+
+And then we can use the `psych` package for some descriptive statistics.
+By using the [-1] addition, we are excluding the participant variable (where descriptive statistics do not make a lot of sense).
+
+```{r desc}
+psych::describe(data_M[-1])
+```
+
+Now, we will calculate within-person and between-person correlations for the time-varying variables.
+By using the [, 8:9] addition, we are telling R, that we only want the variables from the column 8 and 9, which are the negative event intensity and rumination variable.
+
+```{r corr}
+## Within-person and between-person correlation (selecting only event and rumination)
+misty::multilevel.cor(data[, 8:9],
+               cluster = data$participant.ID, 
+               split = TRUE, sig = TRUE, 
+               print = c("cor", "p"))
+```
+
+The within-person correlation is $r = .42, p < .001$ which means that on days that participants experience more intense negative events, they also ruminate to a greater extent.
+
+The between-person correlation is $r = .52, p < .001$ which means that participants that in general experience more intense negative events compared to other participants, also tend to ruminate to a greater extent.
+
+# Step 4: Visualization 
+
+Visualization is a powerful tool to examine the dynamics in your data, and are also often an extra check on whether things look fishy or not.
+I could honestly look at plots all day long ❤️.
+
+## Time-series
+
+Let's first make some time-series plots for the negative event intensity and rumination for the whole sample.
+
+```{r tsall}
+### All participants
+ts.n.ev.int <- ggplot(data = data, aes(x = day, y = n.ev.int, group = participant.ID, color=factor(participant.ID))) +
+  geom_line(show.legend = FALSE) +
+  xlab("Day") + 
+  ylab("Negative event intensity") + 
+  ylim(0,100) +
+  scale_x_continuous(breaks=seq(0,61,by=10)) 
+
+print(ts.n.ev.int)
+
+ts.n.er.rum <- ggplot(data = data, aes(x = day, y = n.er.rum, group = participant.ID, color=factor(participant.ID))) +
+  geom_line(show.legend = FALSE) +
+  xlab("Day") + 
+  ylab("Rumination") + 
+  ylim(0,100) +
+  scale_x_continuous(breaks=seq(0,61,by=10)) 
+
+print(ts.n.er.rum)
+```
+
+Wow, okay, that looks very overwhelming!
+Let's make it a little easier and only choose a subset of individuals, namely participants with ID 1, 2, 3, 4 and 5 for negative event intensity (by indicating in the code `which(data$participant.ID<=5)` and for participants 1 to 10 for rumination (by indicating in the code `which(data$participant.ID<=10)`.
+
+```{r tssub}
+### Subgroup of 5 participants
+# Negative event intensity
+ts.n.ev.int.sub <- ggplot(data = data[which(data$participant.ID<=5),], aes(x = day, y = n.ev.int, group = participant.ID, color=factor(participant.ID))) +
+  geom_point(show.legend = FALSE) + 
+  geom_line(data=data[which(data$participant.ID<=5 & data$n.ev.int !="NA"),], show.legend = FALSE) +
+  xlab("Day") + 
+  ylab("Negative event intensity") + 
+  ylim(0,100) +
+  scale_x_continuous(breaks=seq(0,61,by=10)) 
+
+print(ts.n.ev.int.sub)
+
+# Rumination
+ts.n.er.rum.sub <- ggplot(data = data[which(data$participant.ID<=10),], aes(x = day, y = n.er.rum, group = participant.ID, color=factor(participant.ID))) +
+  geom_point(show.legend = FALSE) + 
+  geom_line(data=data[which(data$participant.ID<=10 & data$n.er.rum !="NA"),], show.legend = FALSE) +
+  xlab("Day") + 
+  ylab("Rumination") + 
+  ylim(0,100) +
+  scale_x_continuous(breaks=seq(0,61,by=10)) 
+
+print(ts.n.er.rum.sub)
+```
+
+We can also save the figures using the `ggsave` function in the `2_figures` folder.
+
+```{r plotsave}
+ggsave(here("2_figures", "ts.n.ev.int.png"), ts.n.ev.int, width = 10, height = 5)
+ggsave(here("2_figures", "ts.n.er.rum.png"), ts.n.er.rum, width = 10, height = 5)
+ggsave(here("2_figures","ts.n.ev.int.sub.png"), ts.n.ev.int.sub, width = 10, height = 5)
+ggsave(here("2_figures", "ts.n.er.rum.sub.png"), ts.n.er.rum.sub, width = 10, height = 5)
+```
+
+That already looks better.
+You can clearly see inter-individual and intra-individual differences.
+
+## Co-variation between negative event intensity and rumination
+
+Okay, our first research question is about the within-person association or co-variation between negative event intensity and rumination.
+Why don't we just visualize that one for two participants (with ID number 2 and ID number 5)?
+
+```{r covp}
+# ID = 2
+ggplot(data = subset(data, participant.ID == 2), aes(x=day), legend=TRUE) +
+  geom_line(aes(x=day,y = n.ev.int), lty=1, size=1,colour="red") +
+  geom_line(aes(x=day,y = n.er.rum), lty=2, size=1,colour="blue") +
+  xlab("Day") + 
+  ylab("Intensity") + ylim(0,100) +
+  scale_x_continuous(breaks=seq(0,61,by=10)) +
+  theme(legend.position="right") +
+  ggtitle("Covariation between negative emotional intensity (red) & rumination (blue)") 
+
+# ID = 5
+ggplot(data = subset(data, participant.ID == 5), aes(x=day), legend=TRUE) +
+  geom_line(aes(x=day,y = n.ev.int), lty=1, size=1,colour="red") +
+  geom_line(aes(x=day,y = n.er.rum), lty=2, size=1,colour="blue") +
+  xlab("Day") + 
+  ylab("Intensity") + ylim(0,100) +
+  scale_x_continuous(breaks=seq(0,61,by=10)) +
+  theme(legend.position="right") +
+  ggtitle("Covariation between negative emotional intensity (red) & rumination (blue)") 
+  
+```
+
+Here, you can clearly see that there is a pretty clear co-variation between those variables.
+On days, where participants experience more intense events, they also tend to ruminate more about those.
+
+## Violin plot
+
+Now, let us make a fancy violin plot.
+They are a good way to show how your data is distributed.
+
+If we want all variables to be in one violin plot, we need to reshape our dataset with the variables we want to include into one long dataset.
+
+```{r reesh}
+# reshape
+data_sub<-data %>%
+  dplyr::select("participant.ID","n.ev.int", "n.er.rum")
+
+data_box <- data_sub %>% 
+  pivot_longer(
+    cols = 2:3,
+    names_to = "variable",
+    values_to = "value")
+
+```
+
+Now, we are writing a neat little function that will add the mean and 1SD above and below into the violin plot.
+You can just literally copy and paste this function, if you want to use it for your own study!
+
+```{r funcvio}
+# Function for summary for violin plot
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+```
+
+And now we are making the violin plot on the reshaped data (data_box) together with the summary function that we just wrote.
+
+```{r violin}
+# Boxplot
+ggplot(data=data_box, aes(x=variable, y=value, fill = variable)) +
+  geom_violin() + 
+  stat_summary(fun.data=mean_sdl,  
+               geom="pointrange", color="black") +
+  scale_x_discrete(labels = c("Negative event intensity", "Rumination")) +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) +
+  xlab("Study variables") + 
+  ylab("Intensity") + 
+  ylim(0,100)+
+  theme(axis.title=element_text(size=14),
+        axis.text=element_text(size=14),
+        plot.title=element_text(size=14, hjust=.5)) +
+  stat_summary(fun.data=data_summary)
+```
+
+There are so many more cool visualizations to do, but for now, let's continue!
+
+#  Step 5: Multilevel models
+
+Okay, and now it is finally time for the multilevel models!
+Remember, we had two major research questions.
+
+## Research question 1
+
+First, we wanted to know: What is the within-person association between negative event intensity and rumination?
+
+For that, we are using the multilevel package `nlme`.
+
+-   **Fixed effects:**
+
+    -   We specify the fixed effects in the first line of code after `lme()`.
+
+    -   On the left, you write the outcome variable (here: `n.er.rum` (*rumination*)), followed by a tilde ( \~).
+
+    -   On the right of the tilde, you define the intercept as `'1'` and the person-centered predictors, which are in our case `n.ev.int.c` (person-centered negative event intensity) and `day` (day of assessment).
+        We added `day` as predictor to control for any time-effects.
+
+-   **Random effects:**
+
+    -   We specify the random effects after the `random =`.
+
+    -   On the left, we specify the random intercept as `'1'` and the random slope of the person-centered predictors (here: `n.ev.int.c` (person-centered negative event intensity), followed by a vertical stripe ( \| ).
+
+    -   On the right of the vertical stripe, we specify the the group-level variable (here: `participant.ID` (the participants)).
+
+    -   Including the random slope means that the relation between negative event intensity and rumination is allowed to vary between individuals.
+
+    -   If you do not specify the random slope (i.e., only have \~1 in there for the intercept), then you only have random intercept, but fixed slopes, meaning that only the level of rumination is allowed to vary, but the relation between negative event intensity and rumination is assumed to be the same across individuals.
+
+```{r mlm1}
+fit.lme.rq1 <- lme(n.er.rum ~ 1 + n.ev.int.c + day, 
+               random = ~ 1 + n.ev.int.c | participant.ID, 
+               correlation = corAR1(),
+               data = data, 
+               na.action = na.exclude, 
+               method = 'REML',
+               control = lmeControl(opt='optim'))
+
+summary(fit.lme.rq1)
+```
+
+In the results, we see that there is a significant within-person relation between negative event intensity and rumination ($est = 0.43, p = <.001$).
+This indicates that on days that participants experience more intense negative events, then they ruminate more!
+
+Let's look at those results in a plot!
+
+```{r mlm1plot}
+## Plotting within-person association
+
+# extract predicted relationship per individual
+data$fit.lme.rq1 <- predict(fit.lme.rq1)
+
+ggplot(data=data, aes(x=n.ev.int.c, y=fit.lme.rq1, group=factor(participant.ID), colour="gray"), legend=FALSE) +
+  geom_smooth(method=lm, formula = y ~ x, se=FALSE, fullrange=FALSE, lty=1, size=.5, color="gray40") +
+  geom_smooth(aes(group=1), method=lm, formula = y ~ x , se=FALSE, fullrange=FALSE, lty=1, size=2, color="blue") +
+  xlab("Negative event intensity (person-centered)") + ylab("Rumination") +
+  theme(axis.title=element_text(size=14),
+        axis.text=element_text(size=10)) +
+  ylim(0, 100)
+```
+
+The blue line indicates the average within-person effects, whereas the grey lines indicate the within-person effect for each participant.
+
+You can see some inter-individual differences in the level of rumination (i.e., some participants report more rumination than others) as well as in the strength of the relation (i.e., for some participants the relation is stronger than for others).
+
+## Research question 2
+
+But, we also had a second research question!
+We were interested to know whether inter-individual differences in depression influence the strength of the relation between negative event intensity and rumination.
+Note, that the sample of 45 is much too small for such a complex cross-level interaction (it is called cross-level because it is an interaction between a within-person and a between-person variable).
+So, this is merely for illustration purposes.
+
+We essentially copy and paste the code from research question 1 and add depression to the formula.
+We add both the main effect of depression (`Dep.c`) and the interaction effect between negative event intensity and depression (`n.ev.int.c:Dep.c`).
+Remember to take the centered versions of the variables!
+
+```{r mlm2}
+fit.lme.rq2 <- lme(n.er.rum ~ 1 + n.ev.int.c + day + Dep.c + n.ev.int.c:Dep.c, 
+                   random = ~ 1 + n.ev.int.c | participant.ID, 
+                   correlation = corAR1(),
+                   data = data, 
+                   na.action = na.exclude, 
+                   method = 'REML',
+                   control = lmeControl(opt='optim'))
+
+summary(fit.lme.rq2)
+```
+
+We see here that there is a significant main effect of depression on rumination ($est = 1.27, p = .001$), indicating that participants with more depressive symptoms also tend to ruminate more in daily life.
+
+The interaction effect is (not surprisingly) not significant ($est = -0.00, p = .676$), indicating that the within-person relation between negative event intensity and rumination does not differ as a function of depressive symptoms.
+
+# Do it yourself!
+
+There is another emotion regulation variable in the dataset that you could try those analyses on, namely *relaxation*. 
+Instead of looking at how much people ruminated, let us look at how much they tried to relax when something stressful happened to them.
+
+1)  Make a time-series plot for relaxation for 5 individuals.\
+
+2)  Calculate the within-person and between-person correlation for negative event intensity and relaxation.\
+
+3)  Run a multilevel model with relaxation as outcome and negative event intensity and depression as predictors (plus their interaction). Do not forget to use the centered versions for the predictors!
+
+
+# Solutions Do it yourself!
+
+## 1) Time-series relaxation
+
+```{r diy1}
+### Subgroup of 5 participants
+# Relaxation
+ggplot(data = data[which(data$participant.ID<=5),], aes(x = day, y = n.er.rel, group = participant.ID, color=factor(participant.ID))) +
+  geom_point(show.legend = FALSE) + 
+  geom_line(data=data[which(data$participant.ID<=5 & data$n.er.rel !="NA"),], show.legend = FALSE) +
+  xlab("Day") + 
+  ylab("Relaxation") + 
+  ylim(0,100) +
+  scale_x_continuous(breaks=seq(0,61,by=10)) 
+
+```
+
+## 2) Correlation negative event intensity and relaxation
+
+```{r diy2}
+## Within-person and between-person correlation (selecting only event and relaxation)
+misty::multilevel.cor(data[, c(8,10)],
+               cluster = data$participant.ID, 
+               split = TRUE, sig = TRUE, 
+               print = c("cor", "p"))
+
+```
+The within-person correlation is $r = .23, p < .001$ which means that on days that participants experience more intense negative events, they also try to relax to a greater extent.
+
+The between-person correlation is not significant, $r = .01, p = .93$, indicating that participants that in general experience more intense negative events compared to other participants are not more or less engaging in relaxation strategies.
+
+This also shows how different within-person and between-person correlations can be sometimes!
+
+## 3) Multilevel model relaxation predicted by negative event intensity and depression
+```{r diy3}
+fit.lme.rqdiy <- lme(n.er.rel ~ 1 + n.ev.int.c + day + Dep.c + n.ev.int.c:Dep.c, 
+                   random = ~ 1 + n.ev.int.c | participant.ID, 
+                   correlation = corAR1(),
+                   data = data, 
+                   na.action = na.exclude, 
+                   method = 'REML',
+                   control = lmeControl(opt='optim'))
+
+summary(fit.lme.rqdiy)
+
+```
+
+We see here that there is a significant within-person relation between negative event intensity and relaxation ($est = 0.20, p = <.001$).
+This indicates that on days that participants experience more intense negative events, then they try to relax more!
+
+There is no main effect of depression on relaxation ($est = 0.50, p = .386$) and no interaction effect with negative event intensity ($est = -0.01, p = .532$).
+
+# REFERENCES 
+
+-   Kleiman, E. (2017). Understanding and analyzing multilevel data from real-time monitoring studies: An easily-accessible tutorial using R. <https://psyarxiv.com/xf2pw/>
+-   Wang, L. P., & Maxwell, S. E. (2015). On disaggregating between-person and within-person effects with longitudinal data using multilevel models. *Psychological methods, 20*(1), 63-83. doi: 10.1037/met0000030.
+-  Myin-Germeys, I., & Kuppens, P. (Eds.). (2022) The open handbook of experience sampling methodology: A step-by-step guide to designing, conducting, and analyzing ESM studies (2nd ed.). Leuven: Center for Research on Experience Sampling and Ambulatory Methods Leuven. Available for free via: <https://www.kuleuven.be/samenwerking/real/real-book>  
+-  Tutorials by Penn State, available via <https://quantdev.ssri.psu.edu/resources/intensive-longitudinal-data-analysis-experience-sampling-and-ema-data>  
+-  Tutorial on data cleaning, available via <https://preprocess.esmtools.com/>
