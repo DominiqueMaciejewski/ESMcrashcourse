@@ -11,9 +11,11 @@ Using this file, we will discuss some basic coding practices and some exercises.
 
 The solution of the exercises, you can find under [`2_solutions_interactive_analyses_ESM_crashcourse.R`](https://github.com/DominiqueMaciejewski/VNOPworkshop2023/blob/main/1_script/2_solutions_interactive_analyses_ESM_crashcourse.R)
 
-Then, there is an additional file with much more explanation and extra analyses.
+There is an additional file with much more explanation and extra analyses!
 This file is rendered in Rmarkdown.
-If you open the file [`3_complete_analyses_ESM_crashcourse.html`](https://github.com/DominiqueMaciejewski/VNOPworkshop2023/blob/main/1_script/3_complete_analyses_ESM_crashcourse.html) in your browser, then you will see a pretty, knitted version with all extra information you need.
+If you open the file [`3_complete_analyses_ESM_crashcourse.html`](https://github.com/DominiqueMaciejewski/VNOPworkshop2023/blob/main/1_script/3_complete_analyses_ESM_crashcourse.html) in your browser (just open it once you downloaded the workshop materials), then you will see a pretty, knitted version with all extra information you need.
+Note: it will not look pretty if you just look at it on Github!
+
 If you only want to see the R code, you can also open [`3_complete_analyses_ESM_crashcourse.Rmd`](https://github.com/DominiqueMaciejewski/VNOPworkshop2023/blob/main/1_script/3_complete_analyses_ESM_crashcourse.Rmd) .
 
 In the folder `2_figures`, you can find some plots that we will make together during the workshop.
