@@ -62,6 +62,7 @@ data <- check.timeinvar(n.er.rum, participant.ID, data, out = 3)
 data <- data %>%  dplyr::filter(duration_sec_start_stop >=60 | is.na(duration_sec_start_stop)) 
 
 # EXERCISE: HOW MANY PARTICIPANTS AND OBSERVATIONS DO WE HAVE NOW?
+# SOLUTION
 nsub(participant.ID, data) #Number of participants
 sum(data$filledin == 1) #Number of observations
 
@@ -86,6 +87,7 @@ ggsave(here("2_figures", "ts.n.ev.int.sub.png"), ts.n.ev.int.sub, width = 10, he
 
 
 # EXERCISE: Now plot rumination (n.er.rum) for the first 10 participants
+# SOLUTION
 ts.n.er.rum.sub <- ggplot(data = data[which(data$participant.ID<=10),], 
                           aes(x = day, y = n.er.rum, group = participant.ID, color=factor(participant.ID))) +
   geom_point(show.legend = FALSE) + 
@@ -134,6 +136,7 @@ fit.lme.rq1 <- lme(n.er.rum ~ 1 + n.ev.int.c + day,
 summary(fit.lme.rq1)
 
 # EXERCISE: Now test the association between negative event intensity and relaxation (n.er.rel)
+# SOLUTION
 fit.lme.rq1b <- lme(n.er.rel ~ 1 + n.ev.int.c + day, 
                    random = ~ 1 + n.ev.int.c | participant.ID, 
                    correlation = corAR1(),
@@ -156,6 +159,7 @@ fit.lme.rq2 <- lme(n.er.rum ~ 1 + n.ev.int.c + day + Dep.c + n.ev.int.c:Dep.c,
 summary(fit.lme.rq2)
 
 # EXERCISE: Now test the moderation of depression on the association between negative event intensity and relaxation (n.er.rel)
+# SOLUTION
 
 fit.lme.rq2b <- lme(n.er.rel ~ 1 + n.ev.int.c + day + Dep.c + n.ev.int.c:Dep.c, 
                    random = ~ 1 + n.ev.int.c | participant.ID, 
