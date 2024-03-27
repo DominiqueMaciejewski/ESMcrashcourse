@@ -1,6 +1,6 @@
-# VNOP-CAS days 2023: ESM crashcourse
+# ESM crashcourse
 
-These are workshop materials for the data analysis crash course for the VNOP-CAS days in 2023.
+These are workshop materials for the ESM data analysis crash course.
 
 In the folder `0_data`, you can find the raw dataset and a cleaned version of this dataset. For the analyses, you need the raw dataset, but we will save the cleaned dataset together in this tutorial.
 
