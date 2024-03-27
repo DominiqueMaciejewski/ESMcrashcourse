@@ -1,5 +1,5 @@
 ---
-title: "ESM crashcourse - Workshop at VNOP-CAS research days 2023 (Utrecht, 16 November 2023)"
+title: "ESM crashcourse"
 author: "Dominique F. Maciejewski"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:

@@ -1,10 +1,9 @@
 # ---------------------------
-# Script name:  Interactive analyses for ESM crashcourse - 
-#               Workshop at VNOP-CAS research days 2023 (Utrecht, 16 November 2023)
+# Script name:  Interactive analyses for ESM crashcourse 
 #
 # Author: Dr. Dominique Maciejewski
 #
-# Date Created: 2023-10-26
+# Date Created: 2023-10-26; updated 27-3-2024
 # 
 # Copyright (c) Dominique Maciejewski, 
 # License: CC BY 4.0 | Attribution 4.0 International 

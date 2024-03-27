@@ -1,10 +1,9 @@
 # ---------------------------
-# Script name:  Interactive analyses for ESM crashcourse - 
-#               Workshop at VNOP-CAS research days 2023 (Utrecht, 16 November 2023)
+# Script name:  Interactive analyses for ESM crashcourse 
 #
 # Author: Dr. Dominique Maciejewski
 #
-# Date Created: 2023-10-26
+# Date Created: 2023-10-26; updated 27-3-2024
 # 
 # Copyright (c) Dominique Maciejewski, 
 # License: CC BY 4.0 | Attribution 4.0 International 
@@ -117,6 +116,15 @@ fit.lme.rq1 <- lme(n.er.rum ~ 1 + n.ev.int.c + day,
 summary(fit.lme.rq1)
 
 # EXERCISE: Now test the association between negative event intensity and relaxation (n.er.rel)
+fit.lme.rq1 <- lme(n.er.rel ~ 1 + n.ev.int.c + day, 
+                   random = ~ 1 + n.ev.int.c | participant.ID, 
+                   correlation = corAR1(),
+                   data = data, 
+                   na.action = na.exclude, 
+                   method = 'REML',
+                   control = lmeControl(opt='optim'))
+
+summary(fit.lme.rq1)
 
 ## Research question 2: Do inter-individual differences in depressive symptoms moderate this momentary relation?
 fit.lme.rq2 <- lme(n.er.rum ~ 1 + n.ev.int.c + day + Dep.c + n.ev.int.c:Dep.c, 
