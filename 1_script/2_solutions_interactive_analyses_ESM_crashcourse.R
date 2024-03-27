@@ -43,7 +43,7 @@ library(nlme) # for multilevel models
 library(lmerTest) # so that p-values are given for multilevel models
 
 # Step 2: Load in Data ----------------------------------------------
-data <- read.csv(here("0_data", "TYM_VNOP2023_raw.csv"), header=TRUE, stringsAsFactors=FALSE)
+data <- read.csv(here("0_data", "TYM_raw.csv"), header=TRUE, stringsAsFactors=FALSE)
 
 head(data) #inspect first 6 rows
 
@@ -121,7 +121,7 @@ data <- data %>%
   dplyr::mutate(Dep.c = Dep-mean_Dep)
 
 ## Save cleaned datafile -----------------------------   
-write.csv(data, here("0_data", "TYM_VNOP2023_cleaned.csv"), row.names=FALSE)
+write.csv(data, here("0_data", "TYM_cleaned.csv"), row.names=FALSE)
 
 ## Research question 1: within-person association between negative event intensity and rumination
 fit.lme.rq1 <- lme(n.er.rum ~ 1 + n.ev.int.c + day, 

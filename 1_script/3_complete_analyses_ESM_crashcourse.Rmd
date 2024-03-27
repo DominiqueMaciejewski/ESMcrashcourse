@@ -102,7 +102,7 @@ Here, I can only focus on a few small important pieces of data cleaning, but I u
 First, we load in the data, which can be found in the folder `0_data`, which we easily specify with the `here` package.
 
 ```{r read}
-data <- read.csv(here("0_data", "TYM_VNOP2023_raw.csv"), header=TRUE, stringsAsFactors=FALSE)
+data <- read.csv(here("0_data", "TYM_raw.csv"), header=TRUE, stringsAsFactors=FALSE)
 ```
 
 ## Description Data
@@ -276,7 +276,7 @@ For a good data management practice, you want to have a raw data file and a clea
 So, after this data cleaning, let's save the cleaned data file.
 
 ```{r save}
-write.csv(data, here("0_data", "TYM_VNOP2023_cleaned.csv"), row.names=FALSE)
+write.csv(data, here("0_data", "TYM_cleaned.csv"), row.names=FALSE)
 ```
 
 Wonderful! 

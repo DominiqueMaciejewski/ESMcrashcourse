@@ -1671,7 +1671,7 @@ website about ESM data cleaning: <a href="https://preprocess.esmtools.com/" clas
 <p>First, we load in the data, which can be found in the folder
 <code>0_data</code>, which we easily specify with the <code>here</code>
 package.</p>
-<pre class="r"><code>data &lt;- read.csv(here(&quot;0_data&quot;, &quot;TYM_VNOP2023_raw.csv&quot;), header=TRUE, stringsAsFactors=FALSE)</code></pre>
+<pre class="r"><code>data &lt;- read.csv(here(&quot;0_data&quot;, &quot;TYM_raw.csv&quot;), header=TRUE, stringsAsFactors=FALSE)</code></pre>
 <div id="description-data" class="section level2" number="3.1">
 <h2><span class="header-section-number">3.1</span> Description Data</h2>
 <table>
@@ -1901,7 +1901,7 @@ datafile</h2>
 <p>For a good data management practice, you want to have a raw data file
 and a cleaned data file. So, after this data cleaning, let’s save the
 cleaned data file.</p>
-<pre class="r"><code>write.csv(data, here(&quot;0_data&quot;, &quot;TYM_VNOP2023_cleaned.csv&quot;), row.names=FALSE)</code></pre>
+<pre class="r"><code>write.csv(data, here(&quot;0_data&quot;, &quot;TYM_cleaned.csv&quot;), row.names=FALSE)</code></pre>
 <p>Wonderful!</p>
 </div>
 <div id="descriptive-statistics" class="section level2" number="4.4">
