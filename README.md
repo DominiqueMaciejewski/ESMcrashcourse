@@ -20,7 +20,7 @@ If you only want to see the R code, you can also open [`3_complete_analyses_ESM_
 
 In the folder `2_figures`, you can find some plots that we will make together during the workshop.
 
-For now, download the code.
+For now, download the code as a ZIP-folder (`Download ZIP`).
 Unpack the folder and double click on `ESMcrashcourse.Rproj`
 
 ![](Github.PNG){width="396"}
