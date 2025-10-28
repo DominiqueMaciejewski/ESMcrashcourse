@@ -1,6 +1,6 @@
 # Workshop materials for the course on "How to analyze Experience Sampling Method data"
 
-These are workshop materials for the ESM data analysis crash course.
+These are workshop materials for the ESM data analysis crash course. This data analysis course was given during several ESM workshops, including the TESC ESM workshop 2025 (slides: <https://osf.io/6q2tr/>) and the VNOP ESM workshops (2023: <https://osf.io/hg38f/> and 2024: <https://osf.io/qhnpf/>).
 
 In the folder `0_data`, you can find the raw dataset and a cleaned version of this dataset.
 For the analyses, you need the raw dataset, but we will save the cleaned dataset together in this tutorial.
