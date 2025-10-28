@@ -1,4 +1,4 @@
-# ESM crashcourse
+# How to analyze Experience Sampling Method data
 
 These are workshop materials for the ESM data analysis crash course.
 
