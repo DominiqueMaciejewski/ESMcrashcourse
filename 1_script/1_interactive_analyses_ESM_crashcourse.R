@@ -18,17 +18,17 @@ sessionInfo() # For reproducibility (gives version numbers of packages)
 here::i_am("1_script/1_interactive_analyses_ESM_crashcourse.R") # Set location of script
 
 ## install packages if needed
-# install.packages("here")
-# install.packages("remotes")
-# remotes::install_github("wviechtb/esmpack")
-# install.packages("ggplot2")
-# install.packages("dplyr")
-# install.packages("psych")
-# install.packages("tidyr")
-# install.packages("Hmisc")
-# install.packages("misty")
-# install.packages("nlme")
-# install.packages("lmerTest")
+ # install.packages("here")
+ # install.packages("remotes")
+ # remotes::install_github("wviechtb/esmpack")
+ # install.packages("ggplot2")
+ # install.packages("dplyr")
+ # install.packages("psych")
+ # install.packages("tidyr")
+ # install.packages("Hmisc")
+ # install.packages("misty")
+ # install.packages("nlme")
+ # install.packages("lmerTest")
 
 ## load packages
 library(here) # for relative paths (try avoiding absolute paths!)
@@ -116,15 +116,6 @@ fit.lme.rq1 <- lme(n.er.rum ~ 1 + n.ev.int.c + day,
 summary(fit.lme.rq1)
 
 # EXERCISE: Now test the association between negative event intensity and relaxation (n.er.rel)
-fit.lme.rq1 <- lme(n.er.rel ~ 1 + n.ev.int.c + day, 
-                   random = ~ 1 + n.ev.int.c | participant.ID, 
-                   correlation = corAR1(),
-                   data = data, 
-                   na.action = na.exclude, 
-                   method = 'REML',
-                   control = lmeControl(opt='optim'))
-
-summary(fit.lme.rq1)
 
 ## Research question 2: Do inter-individual differences in depressive symptoms moderate this momentary relation?
 fit.lme.rq2 <- lme(n.er.rum ~ 1 + n.ev.int.c + day + Dep.c + n.ev.int.c:Dep.c, 
